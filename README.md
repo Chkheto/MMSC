@@ -1,2 +1,2 @@
-# MMS
-Movie management system
+# MMSC
+Movie management system code
