@@ -60,7 +60,6 @@ string inputPassword = Console.ReadLine() ?? "";
 
 if (authService.ValidateLogin(inputEmail, inputPassword))
 {
-    // PRO-TIP: Centralized Admin List
     var authorizedAdmins = new List<string>
     {
         "chkhetianisandro@gmail.com",
@@ -191,17 +190,58 @@ void RunReviewLogic(User user, List<Movie> db, UserService uSvc)
 
 void RunExportLogic(User user, List<Movie> db, UserService uSvc)
 {
-    Console.WriteLine("\nSort: 1:Title|2:Year|3:Rating|4:Duration|5:Cast|6:Alpha Actors|7:Cast Age");
+    Console.WriteLine("\nSort: 1:Title|2:Year|3:Rating|4:Duration|5:Cast|6:Alpha Actors|7:Cast Age|8:EXPORT ALL");
     string choice = Console.ReadLine() ?? "1";
-
-    var sorted = choice == "7"
-        ? db.OrderByDescending(m => m.Actors.Any() ? m.Actors.Average(a => a.Age) : 0).ToList()
-        : uSvc.SortMovies(db, choice);
 
     StringBuilder sb = new StringBuilder();
     sb.AppendLine("====================================================================================");
     sb.AppendLine($"USER EXPORT: {user.Email} | {DateTime.Now}");
     sb.AppendLine("====================================================================================");
+
+    if (choice == "8")
+    {
+        string[] labels = { "Title", "Year", "Rating", "Duration", "Cast", "Alpha Actors", "Cast Age" };
+        for (int i = 1; i <= 7; i++)
+        {
+            sb.AppendLine($"\n>>> SECTION: {labels[i - 1].ToUpper()} <<<");
+            BuildExportString(sb, db, uSvc, i.ToString());
+            sb.AppendLine(new string('=', 60));
+        }
+    }
+    else
+    {
+        BuildExportString(sb, db, uSvc, choice);
+    }
+
+    // DIRECTORY LOGIC
+    string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+    string movieFolderPath = Path.Combine(desktopPath, "Movies");
+
+    try
+    {
+        if (!Directory.Exists(movieFolderPath)) Directory.CreateDirectory(movieFolderPath);
+
+        string filePath = Path.Combine(movieFolderPath, "ExportedMovieData.txt");
+        File.WriteAllText(filePath, sb.ToString());
+
+        Console.WriteLine($"\n[SUCCESS] File updated on Desktop at: Movies/ExportedMovieData.txt");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"\n[ERROR] Could not save file: {ex.Message}");
+    }
+
+    Console.WriteLine("\n--- Export Preview ---");
+    Console.WriteLine(sb.ToString().Length > 1500 ? sb.ToString().Substring(0, 1500) + "..." : sb.ToString());
+    Console.ReadKey();
+}
+
+// Helper to keep logic identical for single and multiple exports
+void BuildExportString(StringBuilder sb, List<Movie> db, UserService uSvc, string choice)
+{
+    var sorted = choice == "7"
+        ? db.OrderByDescending(m => m.Actors.Any() ? m.Actors.Average(a => a.Age) : 0).ToList()
+        : uSvc.SortMovies(db, choice);
 
     foreach (var m in sorted)
     {
@@ -211,15 +251,6 @@ void RunExportLogic(User user, List<Movie> db, UserService uSvc)
         if (m.Reviews.Any()) sb.AppendLine($"Latest Review: \"{m.Reviews.Last().Comment}\"");
         sb.AppendLine(new string('-', 50));
     }
-
-    string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Movies");
-    Directory.CreateDirectory(path);
-    File.WriteAllText(Path.Combine(path, "Export.txt"), sb.ToString());
-
-    Console.WriteLine($"\n[SUCCESS] Saved to Desktop/Movies/Export.txt");
-    Console.WriteLine("--- Preview ---");
-    Console.WriteLine(sb.ToString());
-    Console.ReadKey();
 }
 
 void RunPasswordChange(AuthService authSvc, User user)
