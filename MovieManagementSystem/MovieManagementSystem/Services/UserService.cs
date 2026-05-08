@@ -21,8 +21,6 @@ internal class UserService
                 DatePosted = DateTime.Now
             };
 
-            // Just add the review. 
-            // The Movie model's "AverageRating" will update automatically!
             movie.Reviews.Add(review);
         }
 

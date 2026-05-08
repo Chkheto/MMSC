@@ -15,7 +15,6 @@ namespace MovieManagementSystem.Services
 
             message.Body = new TextPart("plain")
             {
-                // Personalized message
                 Text = $"Hello {userName},\n\nYour random verification code is: {code}"
             };
 
