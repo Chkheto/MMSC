@@ -7,6 +7,7 @@ var movieDb = new List<Movie>();
 var actorDb = new List<Actor>();
 var userService = new UserService();
 var adminService = new AdminService(movieDb, actorDb);
+var searchService = new SearchService(movieDb, actorDb);
 var emailService = new EmailService();
 var authService = new AuthService();
 User? currentUser = null;
@@ -79,7 +80,6 @@ if (authService.ValidateLogin(inputEmail, inputPassword))
 }
 else { Console.WriteLine("Invalid credentials."); return; }
 
-
 // 4. Setup
 var systemAdmin = new User { FirstName = "System", IsAdmin = true };
 SeedMovies(systemAdmin, adminService, userService);
@@ -92,6 +92,7 @@ while (keepRunning)
     string badge = currentUser.IsAdmin ? " [ADMIN]" : "";
     Console.WriteLine($"=== Welcome, {currentUser.FirstName}{badge} ===");
     Console.WriteLine("1: Sort & Export Movie List\n2: Write a Movie Review");
+    Console.WriteLine("S: Search Movies & Actors");
     if (currentUser.IsAdmin) Console.WriteLine("A: Admin Dashboard");
     Console.WriteLine("3: Change Password\n4: Change Name\n5: Exit");
     Console.Write("\nSelection: ");
@@ -101,6 +102,7 @@ while (keepRunning)
     {
         case "1": RunExportLogic(currentUser, movieDb, userService); break;
         case "2": RunReviewLogic(currentUser, movieDb, userService); break;
+        case "S": RunSearchPanel(searchService); break;
         case "A": if (currentUser.IsAdmin) RunAdminPanel(currentUser, movieDb, actorDb, adminService); break;
         case "3": RunPasswordChange(authService, currentUser); break;
         case "4":
@@ -111,6 +113,53 @@ while (keepRunning)
 }
 
 // --- HELPER METHODS ---
+
+void RunSearchPanel(SearchService searchSvc)
+{
+    Console.Clear();
+    Console.WriteLine("=== MOVIE & ACTOR SEARCH ENGINE ===");
+    Console.Write("Enter keyword (Title, Year, or Actor Name): ");
+    string query = Console.ReadLine() ?? "";
+
+    var (movies, actors) = searchSvc.GlobalSearch(query);
+
+    Console.WriteLine("\n================ SEARCH RESULTS ================");
+
+    Console.WriteLine($"\nMovies Found ({movies.Count}):");
+    if (!movies.Any())
+    {
+        Console.WriteLine("  No movies found matching your query.");
+    }
+    else
+    {
+        foreach (var m in movies)
+        {
+            double avg = m.Reviews.Any() ? m.Reviews.Average(r => r.Rating) : 0.0;
+            Console.WriteLine($"  • {m.Title.ToUpper()} ({m.ReleaseYear}) - Rating: {avg:F1}/10 | {m.Duration.TotalMinutes} mins");
+            if (m.Actors.Any())
+            {
+                Console.WriteLine($"    Cast: {string.Join(", ", m.Actors.Select(a => a.FirstName))}");
+            }
+        }
+    }
+
+    Console.WriteLine($"\nActors Found ({actors.Count}):");
+    if (!actors.Any())
+    {
+        Console.WriteLine("  No actors found matching your query.");
+    }
+    else
+    {
+        foreach (var a in actors)
+        {
+            Console.WriteLine($"  • {a.FirstName} (Age: {a.Age})");
+        }
+    }
+
+    Console.WriteLine("\n================================================");
+    Console.WriteLine("Press any key to return to the main menu...");
+    Console.ReadKey();
+}
 
 void RunAdminPanel(User user, List<Movie> mDb, List<Actor> aDb, AdminService adminSvc)
 {
@@ -206,10 +255,10 @@ void RunExportLogic(User user, List<Movie> db, UserService uSvc)
         Directory.CreateDirectory(path);
         File.WriteAllText(Path.Combine(path, "ExportedMovieData.txt"), sb.ToString());
 
-        Console.WriteLine("\n--- CONSOLE PREVIEW (Partial Export) ---");
-        string preview = sb.ToString();
-        Console.WriteLine(preview.Length > 800 ? preview.Substring(0, 800) + "..." : preview);
-        Console.WriteLine("\n[SUCCESS] Export saved to Desktop/Movies.");
+        Console.WriteLine("\n--- CONSOLE EXPORT DISPLAY ---");
+        Console.WriteLine(sb.ToString());
+        Console.WriteLine("--------------------------------");
+        Console.WriteLine("\n[SUCCESS] Full export saved to Desktop/Movies.");
     }
     catch (Exception ex) { Console.WriteLine(ex.Message); }
     Console.ReadKey();
