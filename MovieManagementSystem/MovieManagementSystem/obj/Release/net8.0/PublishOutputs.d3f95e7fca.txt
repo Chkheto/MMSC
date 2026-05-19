@@ -1,0 +1,11 @@
+C:\Users\PC\Desktop\MMS\MovieManagementSystem.exe
+C:\Users\PC\Desktop\MMS\MovieManagementSystem.dll
+C:\Users\PC\Desktop\MMS\MovieManagementSystem.deps.json
+C:\Users\PC\Desktop\MMS\MovieManagementSystem.runtimeconfig.json
+C:\Users\PC\Desktop\MMS\MovieManagementSystem.pdb
+C:\Users\PC\Desktop\MMS\BouncyCastle.Cryptography.dll
+C:\Users\PC\Desktop\MMS\FluentValidation.dll
+C:\Users\PC\Desktop\MMS\MailKit.dll
+C:\Users\PC\Desktop\MMS\MimeKit.dll
+C:\Users\PC\Desktop\MMS\System.Security.Cryptography.Pkcs.dll
+C:\Users\PC\Desktop\MMS\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
